@@ -4,6 +4,8 @@ import { loginUser, registerUser, verifyToken } from './controllers/authControll
 
 const router: Router = Router();
 
+
+
 /* 
 █████████████████████████████████████████████████                                           
 █          🌐 Render alive                      █                                            
