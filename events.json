@@ -1,0 +1,21 @@
+[
+    {
+      "title": "Tech Conference 2025",
+      "date": "2025-04-15T10:00:00.000Z",
+      "eventlocation": "Copenhagen, Denmark",
+      "description": "En stor teknologikonference",
+      "maxAttendees": 200,
+      "attendees": [],
+      "createdBy": "user123"
+    },
+    {
+      "title": "React Workshop",
+      "date": "2025-05-20T12:00:00.000Z",
+      "eventlocation": "Aarhus, Denmark",
+      "description": "Workshop for React-udviklere",
+      "maxAttendees": 50,
+      "attendees": ["user456"],
+      "createdBy": "user789"
+    }
+  ]
+  
