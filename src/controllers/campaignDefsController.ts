@@ -177,6 +177,7 @@ export const syncCampaignDefs: RequestHandler = async (req, res) => {
   // 1) Opret OAuth2‐client med brugerens refreshToken
   const oauth = createOAuthClient()
   oauth.setCredentials({ refresh_token: user.refreshToken })
+  
 
   // 2) Kald service‐laget med tenantId
   try {
