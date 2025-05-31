@@ -16,6 +16,7 @@ async function getFetch(): Promise<(url: string, init?: RequestInit) => Promise<
   return (mod as any).default ?? mod;
 }
 
+
 /**
  * Mutate‐funktion til Google Ads API.
  * @param endpoint Delslutningen (f.eks. 'campaigns:mutate' eller 'adGroups:mutate' osv.)
