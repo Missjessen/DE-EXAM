@@ -176,6 +176,7 @@ export const syncAds: RequestHandler = async (req, res) => {
       tenantId    // <<— tilsæt tenantId her
     )
 
+    
     // 3) Returnér antal synkroniserede annoncer
     res.json({ synced: parsed.length })
   } catch (err: any) {
