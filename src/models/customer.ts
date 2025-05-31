@@ -9,3 +9,4 @@ const googleCustomerSchema = new Schema<GoogleCustomer>({
 })
 
 export const googleCustomerModel = model<GoogleCustomer>('GoogleCustomer', googleCustomerSchema);
+
