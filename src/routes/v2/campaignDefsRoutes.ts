@@ -1,23 +1,15 @@
-// src/routes/campaignDefsRoutes.ts
+// src/routes/v2/campaignDefsRoutes.ts
 import express from 'express';
-import { requireAuth } from '../middleware/requireAuth';
-import * as ctrl from '../controllers/campaignDefsController';
+import * as ctrl from '../../controllers/campaignDefsController';
 
-// █████████████████████████████████████████████████
-// █           Campaign ROUTES (CRUD)              █
-// █████████████████████████████████████████████████
+const campaignV2Router = express.Router();
 
-
-const campaignRouter = express.Router();
-
-// alle ruter er beskyttet
-campaignRouter.use(requireAuth);
 /**
  * @openapi
- * /api/campaign-defs/{sheetId}:
+ * /api/campaign-defs/v2/{sheetId}:
  *   get:
- *     summary: Hent alle kampagnedefinitioner for et specifikt sheet
- *     tags: [CampaignDefs]
+ *     summary: Hent alle kampagnedefinitioner for et specifikt sheet (v2)
+ *     tags: [CampaignDefs v2]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -29,22 +21,24 @@ campaignRouter.use(requireAuth);
  *           type: string
  *     responses:
  *       200:
- *         description: En liste af kampagnedefinitioner
+ *         description: En liste af kampagnedefinitioner (v2)
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/CampaignDef'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-campaignRouter.get('/:sheetId', ctrl.getCampaignsForSheet);
+campaignV2Router.get('/:sheetId', ctrl.getCampaignsForSheet);
 
 /**
  * @openapi
- * /api/campaign-defs/{sheetId}/{campaignId}:
+ * /api/campaign-defs/v2/{sheetId}/{campaignId}:
  *   put:
- *     summary: Opdater en kampagnedefinition i både sheet og DB
- *     tags: [CampaignDefs]
+ *     summary: Opdater en kampagnedefinition i både sheet og DB (v2)
+ *     tags: [CampaignDefs v2]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -66,22 +60,24 @@ campaignRouter.get('/:sheetId', ctrl.getCampaignsForSheet);
  *             $ref: '#/components/schemas/CampaignDef'
  *     responses:
  *       200:
- *         description: Det opdaterede kampagnedefinition-objekt
+ *         description: Det opdaterede kampagnedefinition-objekt (v2)
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/CampaignDef'
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-campaignRouter.put('/:sheetId/:campaignId', ctrl.updateCampaign);
+campaignV2Router.put('/:sheetId/:campaignId', ctrl.updateCampaign);
 
 /**
  * @openapi
- * /api/campaign-defs/{sheetId}/{campaignId}:
+ * /api/campaign-defs/v2/{sheetId}/{campaignId}:
  *   delete:
- *     summary: Slet en kampagnedefinition fra både sheet og DB
- *     tags: [CampaignDefs]
+ *     summary: Slet en kampagnedefinition fra både sheet og DB (v2)
+ *     tags: [CampaignDefs v2]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -97,7 +93,7 @@ campaignRouter.put('/:sheetId/:campaignId', ctrl.updateCampaign);
  *           type: string
  *     responses:
  *       200:
- *         description: Bekræftelse på sletning
+ *         description: Bekræftelse på sletning (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -109,14 +105,14 @@ campaignRouter.put('/:sheetId/:campaignId', ctrl.updateCampaign);
  *       404:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-campaignRouter.delete('/:sheetId/:campaignId', ctrl.deleteCampaign);
+campaignV2Router.delete('/:sheetId/:campaignId', ctrl.deleteCampaign);
 
 /**
  * @openapi
- * /api/campaign-defs/{sheetId}/sync-db:
+ * /api/campaign-defs/v2/{sheetId}/sync-db:
  *   post:
- *     summary: Synkroniser kampagnedefinitioner fra Google Sheet til MongoDB
- *     tags: [CampaignDefs]
+ *     summary: Synkroniser kampagnedefinitioner fra Google Sheet til MongoDB (v2)
+ *     tags: [CampaignDefs v2]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -127,7 +123,7 @@ campaignRouter.delete('/:sheetId/:campaignId', ctrl.deleteCampaign);
  *           type: string
  *     responses:
  *       200:
- *         description: Antal synkroniserede kampagner og data
+ *         description: Antal synkroniserede kampagner og data (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -140,7 +136,9 @@ campaignRouter.delete('/:sheetId/:campaignId', ctrl.deleteCampaign);
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/CampaignDef'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-campaignRouter.post('/:sheetId/sync-db', ctrl.syncCampaignDefs);
+campaignV2Router.post('/:sheetId/sync-db', ctrl.syncCampaignDefs);
 
-export default campaignRouter;
+export default campaignV2Router;

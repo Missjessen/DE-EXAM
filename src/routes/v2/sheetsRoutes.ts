@@ -1,24 +1,15 @@
+// src/routes/v2/sheetsRoutes.ts
 import express from 'express';
-import { requireAuth } from '../middleware/requireAuth';
-import * as ctrl from '../controllers/sheetsController';
+import * as ctrl from '../../controllers/sheetsController';
 
-
-
-// █████████████████████████████████████████████████
-// █           Sheets ROUTES (CRUD)                █
-// █████████████████████████████████████████████████
-
-
-const sheetsRouter = express.Router();
-
-sheetsRouter.use(requireAuth);
+const sheetsV2Router = express.Router();
 
 /**
  * @openapi
- * /api/sheets:
+ * /api/sheets/v2:
  *   post:
- *     summary: Opret et nyt Google Sheet for en bruger
- *     tags: [Sheets]
+ *     summary: Opret et nyt Google Sheet for en bruger (v2)
+ *     tags: [Sheets v2]
  *     requestBody:
  *       required: true
  *       content:
@@ -27,7 +18,7 @@ sheetsRouter.use(requireAuth);
  *             $ref: '#/components/schemas/SheetInput'
  *     responses:
  *       201:
- *         description: Sheet oprettet succesfuldt
+ *         description: Sheet oprettet succesfuldt (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -39,17 +30,17 @@ sheetsRouter.use(requireAuth);
  *     security:
  *       - bearerAuth: []
  */
-sheetsRouter.post('/', ctrl.createSheet);
+sheetsV2Router.post('/', ctrl.createSheet);
 
 /**
  * @openapi
- * /api/sheets:
+ * /api/sheets/v2:
  *   get:
- *     summary: Hent alle sheets for den loggede bruger
- *     tags: [Sheets]
+ *     summary: Hent alle sheets for den loggede bruger (v2)
+ *     tags: [Sheets v2]
  *     responses:
  *       200:
- *         description: Liste af sheets
+ *         description: Liste af sheets (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -59,14 +50,14 @@ sheetsRouter.post('/', ctrl.createSheet);
  *     security:
  *       - bearerAuth: []
  */
-sheetsRouter.get('/', ctrl.getSheets);
+sheetsV2Router.get('/', ctrl.getSheets);
 
 /**
  * @openapi
- * /api/sheets/{id}:
+ * /api/sheets/v2/{id}:
  *   get:
- *     summary: Hent et specifikt sheet
- *     tags: [Sheets]
+ *     summary: Hent et specifikt sheet (v2)
+ *     tags: [Sheets v2]
  *     parameters:
  *       - in: path
  *         name: id
@@ -75,7 +66,7 @@ sheetsRouter.get('/', ctrl.getSheets);
  *           type: string
  *     responses:
  *       200:
- *         description: Sheet data
+ *         description: Sheet data (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -85,14 +76,14 @@ sheetsRouter.get('/', ctrl.getSheets);
  *     security:
  *       - bearerAuth: []
  */
-sheetsRouter.get('/:id', ctrl.getSheetById);
+sheetsV2Router.get('/:id', ctrl.getSheetById);
 
 /**
  * @openapi
- * /api/sheets/{id}:
+ * /api/sheets/v2/{id}:
  *   put:
- *     summary: Opdater sheet navn
- *     tags: [Sheets]
+ *     summary: Opdater sheet navn (v2)
+ *     tags: [Sheets v2]
  *     parameters:
  *       - in: path
  *         name: id
@@ -107,7 +98,7 @@ sheetsRouter.get('/:id', ctrl.getSheetById);
  *             $ref: '#/components/schemas/SheetInput'
  *     responses:
  *       200:
- *         description: Sheet opdateret
+ *         description: Sheet opdateret (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -119,14 +110,14 @@ sheetsRouter.get('/:id', ctrl.getSheetById);
  *     security:
  *       - bearerAuth: []
  */
-sheetsRouter.put('/:id', ctrl.updateSheetById);
+sheetsV2Router.put('/:id', ctrl.updateSheetById);
 
 /**
  * @openapi
- * /api/sheets/{id}:
+ * /api/sheets/v2/{id}:
  *   delete:
- *     summary: Slet et sheet
- *     tags: [Sheets]
+ *     summary: Slet et sheet (v2)
+ *     tags: [Sheets v2]
  *     parameters:
  *       - in: path
  *         name: id
@@ -135,7 +126,7 @@ sheetsRouter.put('/:id', ctrl.updateSheetById);
  *           type: string
  *     responses:
  *       200:
- *         description: Sheet slettet
+ *         description: Sheet slettet (v2)
  *         content:
  *           application/json:
  *             schema:
@@ -149,6 +140,6 @@ sheetsRouter.put('/:id', ctrl.updateSheetById);
  *     security:
  *       - bearerAuth: []
  */
-sheetsRouter.delete('/:id', ctrl.deleteSheetById);
+sheetsV2Router.delete('/:id', ctrl.deleteSheetById);
 
-export default sheetsRouter;
+export default sheetsV2Router;

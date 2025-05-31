@@ -2,6 +2,7 @@
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { iUserModel } from '../models/iUserModel';
+import { IUser } from '../interfaces/iUser';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -47,46 +48,81 @@ export function getAuthUrl(): string {
  * @param code - Koden fra Google OAuth2 callback
  * @returns Brugerobjekt og tokens fra Google
  */
-export async function verifyGoogleCode(code: string) {
+export async function verifyGoogleCode(
+  code: string,
+  tenantId: string = 'default'
+): Promise<{
+  user: {
+    _id: string;
+    email: string;
+    name: string;
+    picture: string;
+    refreshToken: string;
+    tenantId: string;
+  };
+  tokens: {
+    access_token?: string;
+    refresh_token?: string;
+    expiry_date?: number;
+  };
+}> {
+  // 1) Byt code til tokens
   const client = createOAuthClient();
   const { tokens } = await client.getToken(code);
   client.setCredentials(tokens);
 
+  // 2) Hent profildata
   const oauth2 = google.oauth2({ version: 'v2', auth: client });
-  const { data } = await oauth2.userinfo.get(); // 👈 indeholder navn og billede
+  const { data } = await oauth2.userinfo.get();
+  const googleId = data.id!;
+  const email    = data.email!;
+  const name     = data.name!;
+  const picture  = data.picture!;
 
-  // Upsert på iUserModel
-  let user = await iUserModel.findOne({ googleId: data.id });
-  if (!user) {
-    user = new iUserModel({
-      email: data.email,
-      googleId: data.id,
-      name: data.name,         
-      picture: data.picture,
+  // 3) Upsert i Mongo med tenantId
+  let doc = await iUserModel.findOne({ googleId, tenantId });
+  if (!doc) {
+    doc = new iUserModel({
+      googleId,
+      email,
+      name,
+      picture,
       refreshToken: tokens.refresh_token!,
-      accessToken: tokens.access_token!,
-      expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined
+      accessToken:  tokens.access_token!,
+      expiryDate:   tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
+      tenantId
     });
   } else {
-    user.accessToken = tokens.access_token!;
-    if (tokens.refresh_token) user.refreshToken = tokens.refresh_token;
-    if (tokens.expiry_date) user.expiryDate = new Date(tokens.expiry_date);
+    doc.accessToken  = tokens.access_token ?? doc.accessToken;
+    if (tokens.refresh_token) doc.refreshToken = tokens.refresh_token;
+    if (tokens.expiry_date)   doc.expiryDate   = new Date(tokens.expiry_date);
+    doc.tenantId = tenantId;
   }
+  await doc.save();
 
-  await user.save();
+  // 4) Saniter tokens fra Google – null → undefined
+  const safeTokens: {
+    access_token?: string;
+    refresh_token?: string;
+    expiry_date?: number;
+  } = {};
+  if (tokens.access_token)  safeTokens.access_token  = tokens.access_token;
+  if (tokens.refresh_token) safeTokens.refresh_token = tokens.refresh_token;
+  if (typeof tokens.expiry_date === 'number')
+                             safeTokens.expiry_date   = tokens.expiry_date;
 
-  // Tilføj navn og billede fra Google til det objekt du returnerer
-return {
-  user: {
-    ...user.toObject(),
-    name: data.name,
-    picture: data.picture,
-    accessToken: tokens.access_token // 👈 denne linje er nødvendig
-  },
-  tokens
+  // 5) Byg og returnér user + safeTokens
+  const user = {
+    _id:          doc._id.toString(),
+    email:        doc.email,
+    name:         doc.name,
+    picture:      doc.picture,
+    refreshToken: doc.refreshToken,
+    tenantId:     doc.tenantId
+  };
+
+  return { user, tokens: safeTokens };
 }
-}
-
 
 /**
  * Henter Google Ads API-klient for en bruger

@@ -1,6 +1,7 @@
 // src/interfaces/IAdDef.ts
 import { Types } from 'mongoose';
 export interface IAdDef {
+    tenantId:  string
     _id?:       Types.ObjectId;
     userId:     Types.ObjectId;
     sheetId:    string;        // Google Sheets ID

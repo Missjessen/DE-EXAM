@@ -1,22 +1,15 @@
-// src/routes/sheets.ts
+// src/routes/v1/syncRoutes.ts
 import { Router } from 'express';
-import { requireAuth } from '../middleware/requireAuth';
-import * as ctrl from '../controllers/syncSheetController';
+import * as ctrl from '../../controllers/syncSheetController';
 
-// █████████████████████████████████████████████████
-// █           Sync. ROUTES                        █
-// █████████████████████████████████████████████████
-
-
-const syncRouter = Router();
-syncRouter.use(requireAuth);
+const syncV1Router = Router();
 
 /**
  * @openapi
- * /api/sheets/{sheetId}/sync-db-all:
+ * /api/sheets/v1/{sheetId}/sync-db-all:
  *   post:
- *     summary: Synkroniser kampagner, annoncer og keywords fra Sheet til MongoDB
- *     tags: [Sheets]
+ *     summary: Synkroniser kampagner, annoncer og keywords fra Sheet til MongoDB (v1)
+ *     tags: [Sheets v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -27,7 +20,7 @@ syncRouter.use(requireAuth);
  *           type: string
  *     responses:
  *       200:
- *         description: Antal synkroniserede rækker
+ *         description: Antal synkroniserede rækker (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -42,15 +35,17 @@ syncRouter.use(requireAuth);
  *                 keywords:
  *                   type: integer
  *                   example: 15
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-syncRouter.post('/:sheetId/sync-db-all', ctrl.syncDbController);
+syncV1Router.post('/:sheetId/sync-db-all', ctrl.syncDbController);
 
 /**
  * @openapi
- * /api/sheets/{sheetId}/sync-ads:
+ * /api/sheets/v1/{sheetId}/sync-ads:
  *   post:
- *     summary: Synkroniser Ads fra AllResources-tab til Google Ads API
- *     tags: [Sheets]
+ *     summary: Synkroniser Ads fra AllResources-tab til Google Ads API (v1)
+ *     tags: [Sheets v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -61,7 +56,7 @@ syncRouter.post('/:sheetId/sync-db-all', ctrl.syncDbController);
  *           type: string
  *     responses:
  *       200:
- *         description: Liste af statusbeskeder fra Ads API
+ *         description: Liste af statusbeskeder fra Ads API (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -71,15 +66,17 @@ syncRouter.post('/:sheetId/sync-db-all', ctrl.syncDbController);
  *                   type: array
  *                   items:
  *                     type: string
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-syncRouter.post('/:sheetId/sync-ads', ctrl.syncAdsController);
+syncV1Router.post('/:sheetId/sync-ads', ctrl.syncAdsController);
 
 /**
  * @openapi
- * /api/sheets/{sheetId}/sync-all-and-ads:
+ * /api/sheets/v1/{sheetId}/sync-all-and-ads:
  *   post:
- *     summary: Synkroniser alle data til DB og send til Ads API i ét kald
- *     tags: [Sheets]
+ *     summary: Synkroniser alle data til DB og send til Ads API i ét kald (v1)
+ *     tags: [Sheets v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -90,7 +87,7 @@ syncRouter.post('/:sheetId/sync-ads', ctrl.syncAdsController);
  *           type: string
  *     responses:
  *       200:
- *         description: Detaljeret synkroniseringsresultat
+ *         description: Detaljeret synkroniseringsresultat (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -109,7 +106,9 @@ syncRouter.post('/:sheetId/sync-ads', ctrl.syncAdsController);
  *                   type: array
  *                   items:
  *                     type: string
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-syncRouter.post('/:sheetId/sync-all-and-ads', ctrl.syncAllAndAdsController);
+syncV1Router.post('/:sheetId/sync-all-and-ads', ctrl.syncAllAndAdsController);
 
-export default syncRouter;
+export default syncV1Router;

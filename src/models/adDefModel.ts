@@ -7,6 +7,7 @@ export interface AdDefDoc extends Omit<IAdDef,'_id'>, Document {}
 
 const AdDefSchema = new Schema<AdDefDoc>(
   {
+    tenantId:    { type: String, required: true, index: true },
     userId:      { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     sheetId:     { type: String, required: true, index: true },
     adGroup:     { type: String, required: true },

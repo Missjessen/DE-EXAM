@@ -11,6 +11,7 @@
 
     googleAdsCustomerId?: string;
     sheetId?: string;
+    tenantId: string; 
   }
   
   

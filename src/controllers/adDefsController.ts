@@ -1,127 +1,184 @@
 // src/controllers/adDefsController.ts
-import { RequestHandler } from 'express';
-import { AdDefModel } from '../models/adDefModel';
-import { AuthenticatedRequest } from '../interfaces/userReq';
+
+import { RequestHandler } from 'express'
+import { AdDefModel } from '../models/adDefModel'
+import { AuthenticatedRequest } from '../interfaces/userReq'
 import {
   syncAdDefsFromSheet,
   updateAdRowInSheet,
-  deleteAdRowInSheet
-} from '../services/adDefsService';
-import { createOAuthClient } from '../services/googleAuthService';
-
+  deleteAdRowInSheet,
+} from '../services/adDefsService'
+import { createOAuthClient } from '../services/googleAuthService'
 
 /**
  * ======================== GET /api/ad-defs/:sheetId ========================
+ * Hent alle annoncer for en given bruger + tenant
  */
-export const getAdsForSheet: RequestHandler = async (req, res): Promise<void> => {
-  const user = (req as AuthenticatedRequest).user!;
-  const { sheetId } = req.params;
+export const getAdsForSheet: RequestHandler = async (req, res) => {
+  const user     = (req as AuthenticatedRequest).user!
+  const tenantId = (req as AuthenticatedRequest).tenantId!
+  const { sheetId } = req.params
 
-  const docs = await AdDefModel
-    .find({ sheetId, userId: user._id })
-    .lean()
-    .exec();
+  if (!user) {
+    res.status(401).json({ error: 'Login kræves' })
+    return
+  }
+  if (!tenantId) {
+    res.status(400).json({ error: 'Manglende tenantId' })
+    return
+  }
 
-  res.json(docs);
-  return;
-};
+  try {
+    const docs = await AdDefModel
+      .find({ tenantId, sheetId, userId: user._id })
+      .lean()
+      .exec()
+
+    res.json(docs)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+}
 
 /**
- *  ======================== PUT /api/ad-defs/:sheetId/:adId========================
+ * ======================== PUT /api/ad-defs/:sheetId/:adId ========================
+ * Opdater en enkelt annonce (i både DB og Google Sheet)
  */
-export const updateAd: RequestHandler = async (req, res): Promise<void> => {
-  const user = (req as AuthenticatedRequest).user!;
-  const { sheetId, adId } = req.params;
-  const updates = req.body;
+export const updateAd: RequestHandler = async (req, res) => {
+  const user     = (req as AuthenticatedRequest).user!
+  const tenantId = (req as AuthenticatedRequest).tenantId!
+  const { sheetId, adId } = req.params
+  const updates = req.body
 
-  // 1) Opd. DB
-  const doc = await AdDefModel.findOneAndUpdate(
-    { _id: adId, sheetId, userId: user._id },
-    updates,
-    { new: true, lean: true }
-  );
-
-  if (!doc) {
-    res.status(404).json({ error: 'Annonce ikke fundet' });
-    return;
+  if (!user || !user.refreshToken) {
+    res.status(401).json({ error: 'Login kræves' })
+    return
+  }
+  if (!tenantId) {
+    res.status(400).json({ error: 'Manglende tenantId' })
+    return
   }
 
-  // 2) Opd. Sheet
   try {
-    const oauth = createOAuthClient();
-    oauth.setCredentials({ refresh_token: user.refreshToken });
-    await updateAdRowInSheet(oauth, sheetId, adId, updates);
-  } catch (e: any) {
-    console.warn('Kunne ikke opdatere annonce-række i Sheet:', e.message);
-  }
+    // 1) Opdater i MongoDB kun hvis tenantId + userId + sheetId + adId matcher
+    const doc = await AdDefModel.findOneAndUpdate(
+      { _id: adId, tenantId, userId: user._id, sheetId },
+      updates,
+      { new: true, lean: true }
+    )
+    if (!doc) {
+      res.status(404).json({ error: 'Annonce ikke fundet' })
+      return
+    }
 
-  // 3) Retur opd. dokument
-  res.json(doc);
-  return;
-};
+    // 2) Opdater i Google Sheet
+    try {
+      const oauth = createOAuthClient()
+      oauth.setCredentials({ refresh_token: user.refreshToken })
+      await updateAdRowInSheet(oauth, sheetId, adId, updates)
+    } catch (e: any) {
+      console.warn('Kunne ikke opdatere annonce-række i Sheet:', e.message)
+    }
+
+    // 3) Returnér opdateret dokument
+    res.json(doc)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+}
 
 /**
  * ======================== DELETE /api/ad-defs/:sheetId/:adId ========================
+ * Slet en annonce i både DB og Google Sheet
  */
 export const deleteAd: RequestHandler = async (req, res) => {
-  const user = (req as AuthenticatedRequest).user!;
-  const { sheetId, adId } = req.params;
+  const user     = (req as AuthenticatedRequest).user!
+  const tenantId = (req as AuthenticatedRequest).tenantId!
+  const { sheetId, adId } = req.params
 
-  // 1) Hent annoncen fra DB
-  const doc = await AdDefModel
-    .findOne({ _id: adId, sheetId, userId: user._id })
-    .lean()
-    .exec();
-
-  if (!doc) {
-    res.status(404).json({ error: 'Annonce ikke fundet' });
-    return;
+  if (!user?.refreshToken) {
+    res.status(401).json({ error: 'Login kræves' })
+    return
+  }
+  if (!tenantId) {
+    res.status(400).json({ error: 'Manglende tenantId' })
+    return
   }
 
-  
-  if (typeof doc.rowIndex !== 'number') {
-    res.status(500).json({ error: 'Kan ikke finde række-index for annoncen' });
-    return;
-  }
-
- 
   try {
-    const oauth = createOAuthClient();
-    oauth.setCredentials({ refresh_token: user.refreshToken });
-    // Her er doc.rowIndex garanteret at være number
-    await deleteAdRowInSheet(oauth, sheetId, doc.rowIndex);
+    // 1) Hent annonce fra DB inkl. tenantId‐filter
+    const doc = await AdDefModel
+      .findOne({ _id: adId, tenantId, userId: user._id, sheetId })
+      .lean()
+      .exec()
+
+    if (!doc) {
+      res.status(404).json({ error: 'Annonce ikke fundet' })
+      return
+    }
+    if (typeof doc.rowIndex !== 'number') {
+      res.status(500).json({ error: 'Kan ikke finde række-index for annoncen' })
+      return
+    }
+
+    // 2) Slet rækken i Google Sheet
+    try {
+      const oauth = createOAuthClient()
+      oauth.setCredentials({ refresh_token: user.refreshToken })
+      await deleteAdRowInSheet(oauth, sheetId, doc.rowIndex)
+    } catch (err: any) {
+      console.warn('Kunne ikke slette annonce-række i Sheet:', err.message)
+    }
+
+    // 3) Slet annoncen i DB (med tenantId‐filter)
+    await AdDefModel.deleteOne({
+      _id: adId,
+      tenantId,
+      userId: user._id,
+      sheetId,
+    })
+
+    // 4) Returnér bekræftelse
+    res.json({ message: 'Annonce slettet' })
   } catch (err: any) {
-    console.warn('Kunne ikke slette annonce-række i Sheet:', err.message);
-    
+    res.status(500).json({ error: err.message })
   }
+}
 
-  // 4) Slet annoncen i DB
-  await AdDefModel.deleteOne({ _id: adId, sheetId, userId: user._id });
-
-  // 5) Returnér bekræftelse
-  res.json({ message: 'Annonce slettet' });
-  return;
-};
 /**
  * ======================== POST /api/ad-defs/:sheetId/sync-db ========================
+ * Synkroniser alle annoncer fra Google Sheet til DB for denne tenant + bruger
  */
-export const syncAds: RequestHandler = async (req, res): Promise<void> => {
-  const user = (req as AuthenticatedRequest).user!;
-  const { sheetId } = req.params;
+export const syncAds: RequestHandler = async (req, res) => {
+  const user     = (req as AuthenticatedRequest).user!
+  const tenantId = (req as AuthenticatedRequest).tenantId!
+  const { sheetId } = req.params
 
-  // 1) Auth
   if (!user.refreshToken) {
-    res.status(401).json({ error: 'Login kræves' });
-    return;
+    res.status(401).json({ error: 'Login kræves' })
+    return
+  }
+  if (!tenantId) {
+    res.status(400).json({ error: 'Manglende tenantId' })
+    return
   }
 
-  // 2) Sync
-  const oauth = createOAuthClient();
-  oauth.setCredentials({ refresh_token: user.refreshToken });
+  try {
+    // 1) Opret OAuth2‐client og sæt token
+    const oauth = createOAuthClient()
+    oauth.setCredentials({ refresh_token: user.refreshToken })
 
-  const parsed = await syncAdDefsFromSheet(oauth, sheetId, user._id.toString());
+    // 2) Kald service med tenantId som ekstra argument
+    const parsed = await syncAdDefsFromSheet(
+      oauth,
+      sheetId,
+      user._id.toString(),
+      tenantId    // <<— tilsæt tenantId her
+    )
 
-  // 3) Retur antal
-  res.json({ synced: parsed.length });
-  return;
-};
+    // 3) Returnér antal synkroniserede annoncer
+    res.json({ synced: parsed.length })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+}

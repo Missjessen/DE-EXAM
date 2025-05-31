@@ -2,7 +2,6 @@
 import { RequestHandler, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthenticatedRequest, JwtUserPayload } from '../interfaces/userReq';
-
 /**
  * ==============================================================================================
  * Middleware til at beskytte ruter, der kræver autentificering.
@@ -15,7 +14,9 @@ export const requireAuth: RequestHandler = (
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const token = authHeader?.startsWith('Bearer ') 
+    ? authHeader.split(' ')[1] 
+    : null;
 
   if (!token) {
     res.status(401).json({ error: 'Ingen adgang. Mangler token.' });
@@ -25,6 +26,7 @@ export const requireAuth: RequestHandler = (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtUserPayload;
 
+    // Sæt brugerinfo
     req.user = {
       _id: decoded._id,
       email: decoded.email,
@@ -33,12 +35,16 @@ export const requireAuth: RequestHandler = (
       refreshToken: decoded.refreshToken,
       iat: decoded.iat,
       exp: decoded.exp
+    };
+
+    // **Sæt tenantId** fra token
+    if (decoded.tenantId) {
+      req.tenantId = decoded.tenantId;
     }
 
     next();
   } catch (err) {
     res.status(401).json({ error: 'Ugyldigt eller udløbet token.' });
+    return;
   }
-}
-
-
+};

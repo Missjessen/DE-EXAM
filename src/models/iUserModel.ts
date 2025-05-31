@@ -2,6 +2,7 @@ import { Schema, model } from "mongoose";
 import { IUser } from '../interfaces/iUser'
 
 const iUserSchema = new Schema<IUser>({
+  tenantId:     { type: String, required: true, index: true },
   email:        { type: String, required: true, unique: true },
   googleId:     { type: String, required: true, unique: true },
   accessToken:  { type: String, required: true },

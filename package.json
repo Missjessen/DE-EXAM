@@ -32,8 +32,8 @@
     ]
   },
   "dependencies": {
-    "@faker-js/faker": "^9.5.1",
     "@mapbox/node-pre-gyp": "^2.0.0",
+    "@missjessen/mdb-rest-api-core": "^1.2.1",
     "@types/mongodb": "^4.0.6",
     "axios": "^1.8.4",
     "bcrypt": "^5.1.1",

@@ -1,6 +1,7 @@
 // src/interfaces/ICampaign.ts
 import { Types } from 'mongoose';
 export interface ICampaign {
+  tenantId:  string
   _id?: Types.ObjectId;
   userId: Types.ObjectId;
   sheetId: string;

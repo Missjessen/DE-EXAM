@@ -3,6 +3,7 @@
 import { Types } from 'mongoose';
 
 export interface IKeywordDef {
+        tenantId:  string; 
         _id?: Types.ObjectId;
         userId: Types.ObjectId;
         sheetId: string;      // Google Sheets ID

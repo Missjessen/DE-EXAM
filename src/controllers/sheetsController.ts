@@ -1,4 +1,4 @@
-import { NextFunction, Response } from 'express';
+import { NextFunction, Response, RequestHandler} from 'express';
 import { Types } from 'mongoose';
 import { SheetModel } from '../models/SheetModel';
 import { createUserSheet } from '../services/googleSheetsService';
@@ -13,42 +13,64 @@ import { google } from 'googleapis';
  * * POST /api/sheets
  * ==============================================================================================
  */
-export const createSheet = async (
+export const createSheet: RequestHandler = async (
   req: AuthenticatedRequest,
-  res: Response, 
-  next: NextFunction
-): Promise<void> => {
+  res,
+  next
+) => {
   try {
-    const user = req.user!;
-    const name = req.body.name as string;
+    const user     = req.user!         // kræver, at requireAuth har sat req.user
+    const tenantId = req.tenantId!     // kræver, at requireAuth har sat req.tenantId
+    const name     = req.body.name as string
+
     if (!name) {
-      res.status(400).json({ error: 'Navn på sheet mangler' });
-      return;
+      res.status(400).json({ error: 'Navn på sheet mangler' })
+      return
     }
-    const exists = await SheetModel.findOne({ userId: user._id, name });
+
+    // Tjek om sheet med samme navn allerede findes for denne tenant + bruger
+    const exists = await SheetModel.findOne({
+      tenantId,
+      userId: user._id,
+      name
+    })
     if (exists) {
-      res.status(409).json({ error: 'Du har allerede et sheet med dette navn' });
-      return;
+      res
+        .status(409)
+        .json({ error: 'Du har allerede et sheet med dette navn' })
+      return
     }
-    const oauth = createOAuthClient();
-    oauth.setCredentials({ refresh_token: user.refreshToken });
-    const sheetId = await createUserSheet(oauth, name);
-    const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`;
+
+    // Opret tilegnelsen i Google (Sheets API)
+    const oauth = createOAuthClient()
+    oauth.setCredentials({ refresh_token: user.refreshToken! })
+    const sheetId  = await createUserSheet(oauth, name)
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`
+
+    // Gem i MongoDB – med tenantId + userId
     const sheet = await SheetModel.create({
-      userId: new Types.ObjectId(user._id),
+      tenantId,
+      userId:    new Types.ObjectId(user._id),
       sheetId,
       name,
       sheetUrl
-    });
-    res.status(201).json(sheet);
+    })
+
+    res.status(201).json(sheet)
   } catch (err: any) {
     if (err.code === 11000) {
-      res.status(409).json({ error: 'Sheet-navn allerede i brug' });
+      res
+        .status(409)
+        .json({
+          error:
+            'Sheet-navn allerede i brug for denne tenant og bruger'
+        })
     } else {
-      next(err);
+      next(err)
     }
   }
-};
+}
+
 
 
 /**
@@ -56,89 +78,113 @@ export const createSheet = async (
  * GET /api/sheets
  * ==============================================================================================
  */
-export const getSheets = async (
+export const getSheets: RequestHandler = async (
   req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+  res,
+  next
+) => {
   try {
-    const user = req.user!;
-    const docs = await SheetModel.find({ userId: user._id }).lean().exec();
-    res.json(docs);
+    const user     = req.user!
+    const tenantId = req.tenantId!
+
+    // Hent kun dem, der matcher både tenantId + userId
+    const docs = await SheetModel.find({
+      tenantId,
+      userId: user._id
+    })
+      .lean()
+      .exec()
+
+    res.json(docs)
   } catch (err) {
-    next(err);
+    next(err)
   }
-};
+}
+
 
 /**
  * ==============================================================================================
  * GET /api/sheets/:sheetId
  * ==============================================================================================
  */
-export const getSheetById = async (
+export const getSheetById: RequestHandler = async (
   req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+  res,
+  next
+) => {
   try {
-    const user = req.user!;
-    const id = req.params.id;
-    const doc = await SheetModel.findOne({ _id: id, userId: user._id }).lean().exec();
+    const user     = req.user!
+    const tenantId = req.tenantId!
+    const id       = req.params.id
+
+    const doc = await SheetModel.findOne({
+      _id: id,
+      tenantId,
+      userId: user._id
+    })
+      .lean()
+      .exec()
+
     if (!doc) {
-      res.status(404).json({ error: 'Sheet ikke fundet' });
-      return;
+      res.status(404).json({ error: 'Sheet ikke fundet' })
+      return
     }
-    res.json(doc);
+    res.json(doc)
   } catch (err) {
-    next(err);
+    next(err)
   }
-};
+}
+
 
 /**
  * ==============================================================================================
  * PUT /api/sheets/:sheetId
  * ==============================================================================================
  */
-export const updateSheetById = async (
+export const updateSheetById: RequestHandler = async (
   req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+  res,
+  next
+) => {
   try {
-    const user = req.user!;
-    const id = req.params.id;
-    const newName = req.body.name as string;
+    const user      = req.user!
+    const tenantId  = req.tenantId!
+    const id        = req.params.id
+    const newName   = req.body.name as string
+
     if (!newName) {
-      res.status(400).json({ error: 'Nyt navn mangler' });
-      return;
+      res.status(400).json({ error: 'Nyt navn mangler' })
+      return
     }
+
     const updated = await SheetModel.findOneAndUpdate(
-      { _id: id, userId: user._id },
+      { _id: id, tenantId, userId: user._id },
       { name: newName },
       { new: true, lean: true }
-    );
+    )
     if (!updated) {
-      res.status(404).json({ error: 'Sheet ikke fundet' });
-      return;
+      res.status(404).json({ error: 'Sheet ikke fundet' })
+      return
     }
-    // Optional: rename in Google Drive
+
+    // Optional: rename på Google Drive (Sheets API) …
     try {
-      const oauth2 = createOAuthClient();
-      oauth2.setCredentials({ refresh_token: user.refreshToken });
+      const oauth2 = createOAuthClient()
+      oauth2.setCredentials({ refresh_token: user.refreshToken! })
       await google.drive({ version: 'v3', auth: oauth2 }).files.update({
         fileId: updated.sheetId,
         supportsAllDrives: true,
         requestBody: { name: newName }
-      });
+      })
     } catch (driveErr: any) {
-      console.warn('Drive rename fejlede:', driveErr.message);
+      console.warn('Drive rename fejlede:', driveErr.message)
     }
-    res.json(updated);
-  } catch (err) {
-    next(err);
-  }
-};
 
+    res.json(updated)
+  } catch (err) {
+    next(err)
+  }
+}
 
 
 /**
@@ -146,31 +192,44 @@ export const updateSheetById = async (
  * DELETE /api/sheets/:sheetId
  * ==============================================================================================
  */
-export const deleteSheetById = async (
+export const deleteSheetById: RequestHandler = async (
   req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+  res,
+  next
+) => {
   try {
-    const user = req.user!;
-    const id = req.params.id;
-    const doc = await SheetModel.findOne({ _id: id, userId: user._id });
-    if (!doc) {
-      res.status(404).json({ error: 'Sheet ikke fundet' });
-      return;
-    }
-    // Optional: delete from Google Drive
-    try {
-      const oauth2 = createOAuthClient();
-      oauth2.setCredentials({ refresh_token: user.refreshToken });
-      await google.drive({ version: 'v3', auth: oauth2 }).files.delete({ fileId: doc.sheetId });
-    } catch (driveErr: any) {
-      console.warn('Drive delete fejlede:', driveErr.message);
-    }
-    await SheetModel.deleteOne({ _id: id });
-    res.json({ message: 'Sheet slettet' });
-  } catch (err) {
-    next(err);
-  }
-};
+    const user     = req.user!
+    const tenantId = req.tenantId!
+    const id       = req.params.id
 
+    const doc = await SheetModel.findOne({
+      _id: id,
+      tenantId,
+      userId: user._id
+    })
+    if (!doc) {
+      res.status(404).json({ error: 'Sheet ikke fundet' })
+      return
+    }
+
+    // Optional: delete i Google Drive …
+    try {
+      const oauth2 = createOAuthClient()
+      oauth2.setCredentials({ refresh_token: user.refreshToken! })
+      await google.drive({ version: 'v3', auth: oauth2 }).files.delete({
+        fileId: doc.sheetId
+      })
+    } catch (driveErr: any) {
+      console.warn('Drive delete fejlede:', driveErr.message)
+    }
+
+    await SheetModel.deleteOne({
+      _id: id,
+      tenantId,
+      userId: user._id
+    })
+    res.json({ message: 'Sheet slettet' })
+  } catch (err) {
+    next(err)
+  }
+}

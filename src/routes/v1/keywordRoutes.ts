@@ -1,21 +1,19 @@
-// src/routes/keywordRoutes.ts
+// src/routes/v1/keywordRoutes.ts
 import { Router } from 'express';
-import { requireAuth } from '../middleware/requireAuth';
-import * as ctrl from '../controllers/keywordDefsController';
+import * as ctrl from '../../controllers/keywordDefsController';
 
-// █████████████████████████████████████████████████
-// █           Keywords ROUTES (CRUD)              █
-// █████████████████████████████████████████████████
+// ────────────────────────────────────────────────────────────────────────────────
+// ─── Keyword Definitions ROUTES (V1) ────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────────
 
+const keywordsV1Router = Router({ mergeParams: true });
 
-const keywordsRouter = Router({ mergeParams: true });
-keywordsRouter.use(requireAuth);
 /**
  * @openapi
- * /api/keyword-defs/{sheetId}:
+ * /api/keyword-defs/v1/{sheetId}:
  *   get:
- *     summary: Hent alle keyword-definitioner for et specifikt sheet
- *     tags: [KeywordDefs]
+ *     summary: Hent alle keyword-definitioner for et specifikt sheet (v1)
+ *     tags: [KeywordDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -26,22 +24,24 @@ keywordsRouter.use(requireAuth);
  *           type: string
  *     responses:
  *       200:
- *         description: En liste af keyword-definitioner
+ *         description: En liste af keyword-definitioner (v1)
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/KeywordDef'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-keywordsRouter.get('/:sheetId', ctrl.getKeywordsForSheet);
+keywordsV1Router.get('/:sheetId', ctrl.getKeywordsForSheet);
 
 /**
  * @openapi
- * /api/keyword-defs/{sheetId}/{keywordId}:
+ * /api/keyword-defs/v1/{sheetId}/{keywordId}:
  *   put:
- *     summary: Opdater en keyword-definition i både sheet og DB
- *     tags: [KeywordDefs]
+ *     summary: Opdater en keyword-definition i både sheet og DB (v1)
+ *     tags: [KeywordDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -63,22 +63,24 @@ keywordsRouter.get('/:sheetId', ctrl.getKeywordsForSheet);
  *             $ref: '#/components/schemas/KeywordDef'
  *     responses:
  *       200:
- *         description: Det opdaterede keyword-definition-objekt
+ *         description: Det opdaterede keyword-definition-objekt (v1)
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/KeywordDef'
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-keywordsRouter.put('/:sheetId/:keywordId', ctrl.updateKeyword);
+keywordsV1Router.put('/:sheetId/:keywordId', ctrl.updateKeyword);
 
 /**
  * @openapi
- * /api/keyword-defs/{sheetId}/{keywordId}:
+ * /api/keyword-defs/v1/{sheetId}/{keywordId}:
  *   delete:
- *     summary: Slet en keyword-definition fra både sheet og DB
- *     tags: [KeywordDefs]
+ *     summary: Slet en keyword-definition fra både sheet og DB (v1)
+ *     tags: [KeywordDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -94,7 +96,7 @@ keywordsRouter.put('/:sheetId/:keywordId', ctrl.updateKeyword);
  *           type: string
  *     responses:
  *       200:
- *         description: Bekræftelse på sletning
+ *         description: Bekræftelse på sletning (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -102,18 +104,18 @@ keywordsRouter.put('/:sheetId/:keywordId', ctrl.updateKeyword);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Keyword slettet i både Sheet og DB
+ *                   example: 'Keyword slettet i både Sheet og DB'
  *       404:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-keywordsRouter.delete('/:sheetId/:keywordId', ctrl.deleteKeyword);
+keywordsV1Router.delete('/:sheetId/:keywordId', ctrl.deleteKeyword);
 
 /**
  * @openapi
- * /api/keyword-defs/{sheetId}/sync:
+ * /api/keyword-defs/v1/{sheetId}/sync:
  *   post:
- *     summary: Synkroniser keywords fra Google Sheet til MongoDB
- *     tags: [KeywordDefs]
+ *     summary: Synkroniser keywords fra Google Sheet til MongoDB (v1)
+ *     tags: [KeywordDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -124,7 +126,7 @@ keywordsRouter.delete('/:sheetId/:keywordId', ctrl.deleteKeyword);
  *           type: string
  *     responses:
  *       200:
- *         description: Antal opdaterede keywords
+ *         description: Antal opdaterede keywords (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -136,7 +138,9 @@ keywordsRouter.delete('/:sheetId/:keywordId', ctrl.deleteKeyword);
  *                 updated:
  *                   type: integer
  *                   example: 12
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-keywordsRouter.post('/:sheetId/sync', ctrl.syncKeywords);
+keywordsV1Router.post('/:sheetId/sync', ctrl.syncKeywords);
 
-export default keywordsRouter;
+export default keywordsV1Router;

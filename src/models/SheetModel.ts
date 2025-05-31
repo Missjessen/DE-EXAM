@@ -6,6 +6,7 @@ import { ISheet } from '../interfaces/iSheet';
 export interface SheetDocument extends Document, Omit<ISheet,'_id'> {}
 
 const SheetSchema = new Schema<SheetDocument>({
+  tenantId:  { type: String, required: true, index: true },
   userId:    { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   sheetId:   { type: String, required: true, unique: true },
   name:      { type: String, required: true },

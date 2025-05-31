@@ -1,118 +1,114 @@
-// src/util/swaggerConfig.ts
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
-import { Application } from 'express';
+// cruise-nights-api/src/config/swagger.config.ts
 
-export function setupSwagger(app: Application) {
-  const localUrl = process.env.API_BASE_URL || 'http://localhost:4000';
-  const productionUrl = 'https://mdb-rest.onrender.com';
+import { SwaggerOptions } from '@missjessen/mdb-rest-api-core';
 
-  const swaggerDefinition = {
-    openapi: '3.0.1',
+const localUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+const prodUrl  = 'https://mdb-rest.onrender.com';
+
+export const swaggerConfig: SwaggerOptions = {
+  baseUrl: localUrl,
+  devToken: process.env.DEV_TOKEN,
+
+  extraDefinition: {
     info: {
       title: 'MDB REST API',
       version: '1.0.0',
       description:
-        '📄 Dokumentation for Sheets-, Campaigns-, Keywords- og Ads-endpoints.\n\n🔒 Alle ruter kræver JWT Bearer-token under "Authorize".',
+        '📄 Dokumentation for Sheets, Ads, Keywords, Campaigns, Sync osv.\n\n' +
+        '🔒 Alle ruter kræver JWT Bearer-token under “Authorize”.',
     },
     servers: [
-      { url: localUrl, description: '🛠 Lokal udviklingsserver' },
-      { url: productionUrl, description: '🚀 Produktion (Render deploy)' },
+      { url: localUrl, description: '🛠️ Lokal udvikling' },
+      { url: prodUrl,  description: '🚀 Produktion' },
     ],
+
+    
     components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
       schemas: {
+        // ─── Sheet (allerede på plads) ─────────────────────────────────
         SheetInput: {
           type: 'object',
           properties: {
-            name: {
-              type: 'string',
-              example: 'Google Ads kampagne',
-            },
+            name: { type: 'string', example: 'Google Ads kampagne' },
           },
           required: ['name'],
         },
         Sheet: {
           type: 'object',
           properties: {
-            _id: { type: 'string', example: '6643fae92735a8d799ca0e2a' },
-            name: { type: 'string', example: 'Google Ads kampagne' },
+            _id:    { type: 'string', example: '6643fae92735a8d799ca0e2a' },
+            name:   { type: 'string', example: 'Google Ads kampagne' },
             sheetUrl: { type: 'string', example: 'https://docs.google.com/spreadsheets/d/xyz123' },
             userId: { type: 'string', example: '663abc12345def0000000000' },
           },
         },
-        ErrorResponse: {
-          type: 'object',
-          properties: {
-            error: {
-              type: 'string',
-              example: 'Sheet-navn allerede i brug',
-            },
-          },
-        },
+
+        // ─── CampaignDef (allerede på plads) ─────────────────────────────
         CampaignDef: {
           type: 'object',
           properties: {
-            _id: { type: 'string' },
-            userId: { type: 'string' },
-            sheetId: { type: 'string' },
-            name: { type: 'string' },
-            status: { type: 'string', enum: ['ENABLED', 'PAUSED'] },
+            _id:       { type: 'string' },
+            userId:    { type: 'string' },
+            sheetId:   { type: 'string' },
+            name:      { type: 'string' },
+            status:    { type: 'string', enum: ['ENABLED', 'PAUSED'] },
             startDate: { type: 'string' },
-            endDate: { type: 'string' },
-            budget: { type: 'number' },
-            rowIndex: { type: 'number' },
-            createdAt: { type: 'string' }
-          }
+            endDate:   { type: 'string' },
+            budget:    { type: 'number' },
+            rowIndex:  { type: 'number' },
+            createdAt: { type: 'string' },
+          },
         },
+
+        // ─── KeywordDef (tilføj denne) ───────────────────────────────────
         KeywordDef: {
           type: 'object',
           properties: {
-            _id: { type: 'string' },
-            userId: { type: 'string' },
-            sheetId: { type: 'string' },
-            adGroup: { type: 'string' },
-            keyword: { type: 'string' },
+            _id:       { type: 'string' },
+            userId:    { type: 'string' },
+            sheetId:   { type: 'string' },
+            adGroup:   { type: 'string' },
+            keyword:   { type: 'string' },
             matchType: { type: 'string', enum: ['BROAD','PHRASE','EXACT'] },
-            cpc: { type: 'number' },
-            rowIndex: { type: 'number' },
+            cpc:       { type: 'number' },
+            rowIndex:  { type: 'number' },
             createdAt: { type: 'string' },
-          }
+          },
         },
+
+        // ─── AdDef (tilføj denne) ────────────────────────────────────────
         AdDef: {
           type: 'object',
           properties: {
-            _id: { type: 'string' },
-            userId: { type: 'string' },
-            sheetId: { type: 'string' },
-            adGroup: { type: 'string' },
+            _id:       { type: 'string' },
+            userId:    { type: 'string' },
+            sheetId:   { type: 'string' },
+            adGroup:   { type: 'string' },
             headline1: { type: 'string' },
             headline2: { type: 'string' },
             description: { type: 'string' },
-            finalUrl: { type: 'string' },
-            path1: { type: 'string' },
-            path2: { type: 'string' },
-            rowIndex: { type: 'number' },
+            finalUrl:  { type: 'string' },
+            path1:     { type: 'string' },
+            path2:     { type: 'string' },
+            rowIndex:  { type: 'number' },
             createdAt: { type: 'string' },
-          }
+          },
+        },
+
+        // ─── ErrorResponse (tilføj denne) ────────────────────────────────
+        ErrorResponse: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Noget gik galt' },
+          },
         },
       },
     },
-    security: [{ bearerAuth: [] }],
-  };
+  },
 
-  const options = {
-    definition: swaggerDefinition,
-    apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
-  };
-
-  const swaggerSpec = swaggerJsdoc(options);
-
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-}
+  extraApis: [
+    './src/routes/v1/**/*.ts',
+    './src/routes/v2/**/*.ts',
+    './src/controllers/**/*.ts',
+  ],
+};

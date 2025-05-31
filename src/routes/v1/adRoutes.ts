@@ -1,22 +1,19 @@
-// src/routes/adRoutes.ts
-import { Router } from 'express'
-import { requireAuth } from '../middleware/requireAuth'
-import * as ctrl       from '../controllers/adDefsController'
+// src/routes/v1/adRoutes.ts
+import { Router } from 'express';
+import * as ctrl from '../../controllers/adDefsController';
 
-// █████████████████████████████████████████████████
-// █           Ads ROUTES (CRUD)                   █
-// █████████████████████████████████████████████████
+const adV1Router = Router();
 
-const adRouter = Router()
+// ────────────────────────────────────────────────────────────────────────────────
+// ─── Ad Definitions ROUTES (V1) ────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────────
 
-// Beskyt alle endpoints med JWT
-adRouter.use(requireAuth)
 /**
  * @openapi
- * /api/ad-defs/{sheetId}:
+ * /api/ad-defs/v1/{sheetId}:
  *   get:
- *     summary: Hent alle annoncer for et specifikt sheet
- *     tags: [AdDefs]
+ *     summary: Hent alle annoncer for et specifikt sheet (v1)
+ *     tags: [AdDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -27,22 +24,24 @@ adRouter.use(requireAuth)
  *           type: string
  *     responses:
  *       200:
- *         description: En liste af annoncer
+ *         description: En liste af annoncer (v1)
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/AdDef'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-adRouter.get('/:sheetId', ctrl.getAdsForSheet)
+adV1Router.get('/:sheetId', ctrl.getAdsForSheet);
 
 /**
  * @openapi
- * /api/ad-defs/{sheetId}/{adId}:
+ * /api/ad-defs/v1/{sheetId}/{adId}:
  *   put:
- *     summary: Opdater en annonce i både sheet og DB
- *     tags: [AdDefs]
+ *     summary: Opdater en annonce i både sheet og DB (v1)
+ *     tags: [AdDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -64,22 +63,24 @@ adRouter.get('/:sheetId', ctrl.getAdsForSheet)
  *             $ref: '#/components/schemas/AdDef'
  *     responses:
  *       200:
- *         description: Den opdaterede annonce
+ *         description: Den opdaterede annonce (v1)
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AdDef'
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-adRouter.put('/:sheetId/:adId', ctrl.updateAd)
+adV1Router.put('/:sheetId/:adId', ctrl.updateAd);
 
 /**
  * @openapi
- * /api/ad-defs/{sheetId}/{adId}:
+ * /api/ad-defs/v1/{sheetId}/{adId}:
  *   delete:
- *     summary: Slet en annonce fra både sheet og DB
- *     tags: [AdDefs]
+ *     summary: Slet en annonce fra både sheet og DB (v1)
+ *     tags: [AdDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -95,7 +96,7 @@ adRouter.put('/:sheetId/:adId', ctrl.updateAd)
  *           type: string
  *     responses:
  *       200:
- *         description: Bekræftelse på sletning
+ *         description: Bekræftelse på sletning (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -107,14 +108,14 @@ adRouter.put('/:sheetId/:adId', ctrl.updateAd)
  *       404:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-adRouter.delete('/:sheetId/:adId', ctrl.deleteAd)
+adV1Router.delete('/:sheetId/:adId', ctrl.deleteAd);
 
 /**
  * @openapi
- * /api/ad-defs/{sheetId}/sync-db:
+ * /api/ad-defs/v1/{sheetId}/sync-db:
  *   post:
- *     summary: Synkroniser annoncer fra Google Sheet til MongoDB
- *     tags: [AdDefs]
+ *     summary: Synkroniser annoncer fra Google Sheet til MongoDB (v1)
+ *     tags: [AdDefs v1]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -125,7 +126,7 @@ adRouter.delete('/:sheetId/:adId', ctrl.deleteAd)
  *           type: string
  *     responses:
  *       200:
- *         description: Antal synkroniserede annoncer
+ *         description: Antal synkroniserede annoncer (v1)
  *         content:
  *           application/json:
  *             schema:
@@ -134,7 +135,9 @@ adRouter.delete('/:sheetId/:adId', ctrl.deleteAd)
  *                 synced:
  *                   type: integer
  *                   example: 8
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
-adRouter.post('/:sheetId/sync-db', ctrl.syncAds)
+adV1Router.post('/:sheetId/sync-db', ctrl.syncAds);
 
-export default adRouter
+export default adV1Router;

@@ -6,6 +6,7 @@ export interface KeywordDefDoc extends Omit<IKeywordDef,'_id'>, Document {}
 
 const KeywordDefSchema = new Schema<KeywordDefDoc>(
   {
+    tenantId:  { type: String, required: true, index: true },
     userId:    { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     sheetId:   { type: String, required: true, index: true },
     adGroup:   { type: String, required: true },

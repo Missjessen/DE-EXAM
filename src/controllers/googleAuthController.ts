@@ -7,7 +7,7 @@ import { AuthenticatedRequest } from '../interfaces/userReq';
 
 /**
  * ==============================================================================================
- * Starter Google OAuth2‑flow.
+ * Starter Google OAuth2-flow.
  * Redirecter til Googles samtykkeskærm med alle SCOPES (Ads, Sheets, userinfo).
  * ==============================================================================================
  */
@@ -19,27 +19,32 @@ export const googleLogin: RequestHandler = (_req, res) => {
 /**
  * ==============================================================================================
  * Callback fra Google efter login.
- * Bytter kode til tokens, upserter bruger i Mongo, udsteder JWT inkl. tokens.
+ * Bytter kode til tokens, upserter bruger i Mongo, udsteder JWT inkl. tenantId.
  * ==============================================================================================
  */
 export const googleCallback: RequestHandler = async (req, res, next) => {
   const code = req.query.code as string;
-
   if (!code) {
     res.status(400).json({ error: 'Manglende kode fra Google' });
     return;
   }
 
   try {
-    const { user, tokens } = await verifyGoogleCode(code);
+    // 1) Læs tenantId (hvis du sender det fx i en header), ellers brug 'default'
+    const tenantId = (req.header('X-Tenant-ID') as string) || 'default';
 
+    // 2) Kald servicelaget med tenantId
+    const { user, tokens } = await verifyGoogleCode(code, tenantId);
+
+    // 3) Signér JWT inkl. tenantId
     const jwtToken = jwt.sign(
       {
-        _id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        picture: user.picture,
-        refreshToken: tokens.refresh_token
+        _id:          user._id,
+        email:        user.email,
+        name:         user.name,
+        picture:      user.picture,
+        refreshToken: user.refreshToken,
+        tenantId:     user.tenantId
       },
       process.env.JWT_SECRET!,
       { expiresIn: '7d' }
@@ -47,13 +52,15 @@ export const googleCallback: RequestHandler = async (req, res, next) => {
 
     console.log('✅ JWT oprettet:', jwtToken);
 
+    // 4) Returnér token + user (inkl. tenantId)
     res.json({
       token: jwtToken,
       user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        picture: user.picture
+        _id:       user._id,
+        email:     user.email,
+        name:      user.name,
+        picture:   user.picture,
+        tenantId:  user.tenantId
       }
     });
   } catch (err) {
@@ -62,47 +69,43 @@ export const googleCallback: RequestHandler = async (req, res, next) => {
   }
 };
 
-
-
-
 /**
  * ==============================================================================================
  * Beskyttet endpoint: Henter oplysninger om den loggede bruger.
- * Forudsætter, at requireAuth har placeret JwtUserPayload i req.user.
+ * Forudsætter, at authMiddleware har sat JwtUserPayload i req.user.
  * ==============================================================================================
  */
 export const getMe: RequestHandler = (req: AuthenticatedRequest, res) => {
   if (!req.user) {
-    res.status(401).json({ error: 'Ikke logget ind' })
-    return
+    res.status(401).json({ error: 'Ikke logget ind' });
+    return;
   }
 
-  const { email, name, picture, exp } = req.user
+  // Udtræk også tenantId fra JWT-payload
+  const { email, name, picture, exp, tenantId } = req.user;
 
   res.json({
     user: {
       email,
       name,
       picture,
-      exp
+      exp,
+      tenantId
     }
-  })
-}
+  });
+};
 
 /**
  * ==============================================================================================
- * Beskyttet endpoint: Logger brugeren ud ved at slette JWT fra browserens cookies.
+ * Beskyttet endpoint: Logger brugeren ud ved at slette JWT fra cookies.
  * ==============================================================================================
  */
-export const logout: RequestHandler = (req, res) => {
-  // Fjern evt. cookie
+export const logout: RequestHandler = (_req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure:   process.env.NODE_ENV === 'production',
     sameSite: 'lax'
-  })
+  });
 
-  res.status(200).json({ message: 'Logout successful' })
-}
-
-
+  res.status(200).json({ message: 'Logout successful' });
+};

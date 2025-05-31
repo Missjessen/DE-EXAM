@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 
 export interface ISheet {
   _id:       Types.ObjectId;
+  tenantId:   string; 
   userId:    Types.ObjectId;
   sheetId:   string;        
   name:      string;       

@@ -1,7 +1,8 @@
 // src/interfaces/ICampaignDef.ts
 import { Types } from 'mongoose';
 
-export interface ICampaignDef {       
+export interface ICampaignDef {   
+  tenantId:  string;    
   userId:     Types.ObjectId;
   sheetId:    string;
   name:       string;
