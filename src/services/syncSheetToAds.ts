@@ -4,8 +4,6 @@ import { google } from 'googleapis'
 import { OAuth2Client } from 'google-auth-library'
 import { Types } from 'mongoose'
 import { CampaignDefModel } from '../models/CampaignDefModel'
-import { AdDefModel } from '../models/AdDefModel'
-import { KeywordDefModel } from '../models/KeywordDefModel'
 import {
   callAdsApiCampaignMutate,
   callAdsApiAdGroupMutate,
@@ -137,13 +135,13 @@ export async function syncAllFromSheet(
   userId: string,
   tenantId: string    // <<— ekstra parameter
 ): Promise<{ campaigns: number; ads: number; keywords: number }> {
-  // 1) Sync kampagner – syncCampaignDefsFromSheet er allerede rettet til at modtage tenantId
+  
   const campNames = await syncCampaignDefsFromSheet(oauth, sheetId, userId, tenantId)
 
-  // 2) Sync annoncer – her kalder vi adDefsService. Justér den også, hvis den behøver tenantId.
+  
   const adsDefs = await syncAdDefsFromSheet(oauth, sheetId, userId, tenantId)
 
-  // 3) Sync keywords – justér keywordDefsService til 4 parametre, hvis nødvendigt
+  
   const keywordDefs = await syncKeywordDefsFromSheet(oauth, sheetId, userId, tenantId)
 
   return {
