@@ -137,11 +137,7 @@ export async function syncAllFromSheet(
 ): Promise<{ campaigns: number; ads: number; keywords: number }> {
   
   const campNames = await syncCampaignDefsFromSheet(oauth, sheetId, userId, tenantId)
-
-  
   const adsDefs = await syncAdDefsFromSheet(oauth, sheetId, userId, tenantId)
-
-  
   const keywordDefs = await syncKeywordDefsFromSheet(oauth, sheetId, userId, tenantId)
 
   return {
