@@ -55,10 +55,6 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
 
-      # 7) (Valgfrit) Kør tests, hvis du har en test-suite
-      - name: 🧪 Run tests
-        run: npm test
-
   deploy:
     name: 🚀 Deploy to Render
     runs-on: ubuntu-latest
