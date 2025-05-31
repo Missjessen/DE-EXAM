@@ -6,6 +6,7 @@ import {
 import cron, { ScheduledTask } from "node-cron";
 import https from "https";
 
+
 // Settings
 const TOTAL_DURATION_MINUTES = 120; // Total "keep-remote-server-alive" duration 
 const MINUTES_DELTA = 5; // How often should we ping the server

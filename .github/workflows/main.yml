@@ -69,4 +69,4 @@ jobs:
       # 2) Trigger et deploy via Render-webhook
       - name: 🔔 Trigger Render Deployment
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          ${{ secrets.RENDER_DEPLOY_HOOK }}
