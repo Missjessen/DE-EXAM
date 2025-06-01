@@ -1,6 +1,6 @@
 name: Node.js CI/CD
 
-# Kør workflowet hver gang der pushes til main-branch
+
 on:
   push:
     branches:
@@ -13,8 +13,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ["18.x"]        # Node.js-version(er) til test
-        mongodb-version: ["8.0"]      # MongoDB-version til test-databasen
+        node-version: ["18.x"]        
+        mongodb-version: ["8.0"]      
 
     env:
       # Miljøvariabler, der sættes fra repo-secrets
@@ -23,50 +23,50 @@ jobs:
       JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
 
     steps:
-      # 1) Hent koden fra GitHub
+      # Hent koden fra GitHub
       - name: 📂 Checkout repo
         uses: actions/checkout@v3
 
-      # 2) Sæt den ønskede Node.js-version op
+      
       - name: 🛠️ Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
 
-      # 3) Start en MongoDB-instans i Docker
+      # Start en MongoDB-instans 
       - name: Start MongoDB ${{ matrix.mongodb-version }} 
         uses: supercharge/mongodb-github-action@1.12.0
         with:
           mongodb-version: ${{ matrix.mongodb-version }}
 
-      # 4) Opret en .env-fil med de nødvendige secrets
+      # nødvendige secrets
       - name: 📝 Create .env file
         run: |
           echo "DBHOST=${{ secrets.DBHOST }}"       >> .env
           echo "TOKEN_SECRET=${{ secrets.TOKEN_SECRET }}" >> .env
           echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
 
-      # 5) Installer dependencies (inkl. @missjessen/mdb-rest-api-core)
+      # dependencies (inkl. @missjessen/mdb-rest-api-core)
       - name: 📦 Install dependencies
         run: npm ci
 
-      # 6) Byg projektet (Transpile TypeScript, generer dist/ etc.)
+      
       - name: 🏗️ Build project
         run: npm run build
 
   deploy:
     name: 🚀 Deploy to Render
     runs-on: ubuntu-latest
-    needs: test                                # Kør kun, hvis test-jobbet lykkes
-    if: "github.ref == 'refs/heads/main'"      # Kør kun på pushes til main
+    needs: test                               
+    if: "github.ref == 'refs/heads/main'"      
 
     steps:
-      # 1) Checkout koden igen (vi behøver ikke node her, kun HTTP-kald)
+      #Checkout koden igen 
       - name: 📂 Checkout repo
         uses: actions/checkout@v3
 
-      # 2) Trigger et deploy via Render-webhook
+      # Trigger et deploy via Render-webhook
       - name: 🔔 Trigger Render Deployment
         run: |
           ${{ secrets.RENDER_DEPLOY_HOOK }}
