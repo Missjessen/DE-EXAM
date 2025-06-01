@@ -9,10 +9,9 @@ const CUSTOMER_ID = process.env.GOOGLE_ADS_CUSTOMER_ID;
  * at bruge `require()` på en ESM‐pakke. Returnerer default‐eksporten (fetch-funktionen).
  */
 async function getFetch(): Promise<(url: string, init?: RequestInit) => Promise<FetchResponse>> {
-  // Dynamisk import, så vi undgår ERR_REQUIRE_ESM i CI eller lokal dev
+ 
   const mod = await import('node-fetch');
-  // ESM‐modulet eksporterer typisk default i `mod.default`. Hvis det ikke findes,
-  // så prøver vi `mod` selv (tilfælde hvor `node-fetch` allerede er CommonJS).
+  
   return (mod as any).default ?? mod;
 }
 
@@ -27,7 +26,7 @@ async function mutate(endpoint: string, operations: any[]): Promise<any> {
     return Promise.resolve([]);
   }
 
-  // Hent fetch‐funktionen dynamisk
+ 
   const fetch = await getFetch();
 
   if (!CUSTOMER_ID) {

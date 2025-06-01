@@ -11,10 +11,10 @@ export interface JwtUserPayload {
   accessToken?: string;
   iat: number;
   exp: number;
-  tenantId?: string;      // ← Tilføj denne linje
+  tenantId?: string;      
 }
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtUserPayload;
-  tenantId?: string;      // ← Og denne
+  tenantId?: string;      
 }

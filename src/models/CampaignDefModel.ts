@@ -15,7 +15,7 @@ const CampaignDefSchema = new Schema<CampaignDefDoc>(
     status:     { type: String, enum: ['ENABLED', 'PAUSED'], required: true, default: 'ENABLED' },
     startDate:  { type: String, required: true },
     endDate:    { type: String, required: true },
-    budget:     { type: Number },                     // beholdt uændret, som du havde det
+    budget:     { type: Number },                     
     rowIndex:   { type: Number, required: true },
     createdAt:  { type: Date, default: () => new Date() }
   },

@@ -54,7 +54,7 @@ export async function parseKeywordsFromSheet(
     .filter((k) => k.adGroup && k.keyword)
 }
 
-// 2) syncKeywordDefsFromSheet – opdater DB med keywords fra Google Sheets
+
 export async function syncKeywordDefsFromSheet(
   oAuthClient: OAuth2Client,
   sheetId: string,
@@ -71,7 +71,7 @@ export async function syncKeywordDefsFromSheet(
     sheetId
   })
 
-  // 2) Indsæt alle parsed keywords – husk tenantId
+ 
   const toInsert = parsed.map((k) => ({
     tenantId,
     userId:    new Types.ObjectId(userId),
@@ -91,7 +91,7 @@ export async function syncKeywordDefsFromSheet(
   return parsed
 }
 
-// 3) updateKeywordRowInSheet – skriv enkelt‐celle opdateringer
+
 export async function updateKeywordRowInSheet(
   oAuthClient: OAuth2Client,
   sheetId: string,
@@ -119,7 +119,7 @@ export async function updateKeywordRowInSheet(
   }
 }
 
-// 4) deleteKeywordRowInSheet – slet én række med deleteDimension
+
 export async function deleteKeywordRowInSheet(
   oAuthClient: OAuth2Client,
   sheetId: string,

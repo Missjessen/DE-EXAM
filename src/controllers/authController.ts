@@ -22,7 +22,7 @@ import { connect, disconnect } from "../repository/database";
 export async function registerUser(req: Request, res: Response) {
 
     try {
-        // validate the user and password info
+        
         const { error } = validateUserRegistrationInfo(req.body);
 
         if (error) {
@@ -30,9 +30,9 @@ export async function registerUser(req: Request, res: Response) {
             return;
         }
 
-       // await connect();
+       
 
-        // check if the email is already registered
+        
         const emailExists = await userModel.findOne({ email: req.body.email });
 
         if (emailExists) {
@@ -40,8 +40,7 @@ export async function registerUser(req: Request, res: Response) {
             return;
         }
 
-        // check if the email is already registered
-
+       
 
         // has the password
         const salt = await bcrypt.genSalt(10);
@@ -60,9 +59,7 @@ export async function registerUser(req: Request, res: Response) {
     } catch (error) {
         res.status(500).send({ error: `Error registrering user. Error`});
     }
-    // finally {
-    //    // await disconnect();
-    // }
+    
 };
 
 // ======================== LOGIN USER ========================
@@ -83,8 +80,7 @@ export async function loginUser(req: Request, res: Response) {
             return;
         }
 
-        // find the user
-        //await connect();
+        
         const user: User | null = await userModel.findOne({ email: req.body.email });
         if (!user) {
             res.status(400).json({ error: "Email or password is incorrect" });
@@ -117,9 +113,7 @@ export async function loginUser(req: Request, res: Response) {
     } catch (error) {
         res.status(500).send({ error: "Error logging in user." });
     }
-    //  finally {
-    //     await disconnect();
-     
+   
 }
 /**
  * Validate user info (name, email, password)

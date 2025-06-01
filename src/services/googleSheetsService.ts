@@ -13,10 +13,10 @@ export async function createUserSheet(
   oAuthClient: OAuth2Client,
   title: string
 ): Promise<string> {
-  // 1) Opret Sheets-API klient med brugerens OAuth2-token
+ 
   const sheets = google.sheets({ version: 'v4', auth: oAuthClient });
 
-  // 2) Opret et nyt spreadsheet med fire faner (Kampagner, Annoncer, Keywords, Forklaring)
+  
   const response = await sheets.spreadsheets.create({
     requestBody: {
       properties: { title },      // Sæt selve dokumentets titel
@@ -29,10 +29,10 @@ export async function createUserSheet(
     }
   });
 
-  // 3) Gem det nye spreadsheetId
+  
   const spreadsheetId = response.data.spreadsheetId!;
 
-  // 4) Byg et map fra fanens navn → sheetId, så vi kan bruge det i requests
+ 
   const sheetIdMap = (response.data.sheets ?? []).reduce((acc, sheet) => {
     const name    = sheet.properties!.title!;
     const sheetId = sheet.properties!.sheetId!;
@@ -40,11 +40,11 @@ export async function createUserSheet(
     return acc;
   }, {} as Record<string, number>);
 
-  // 5) Sæt kolonne-headers i hver fane via batchUpdate på values
+ 
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
     requestBody: {
-      valueInputOption: 'RAW',   // Indtast tekst “råt” uden formatering
+      valueInputOption: 'RAW',   
       data: [
         { range: 'Kampagner!A1:E1', values: [['Campaign Name','Status','Budget','Start Date','End Date']] },
         { range: 'Annoncer!A1:F1',  values: [['Ad Group','Headline 1','Headline 2','Description','Final URL','Path']] },
@@ -54,7 +54,7 @@ export async function createUserSheet(
     }
   });
 
-  // 6) Farv og bold overskrifterne med repeatCell-requests
+  //  Farv og bold overskrifterne med repeatCell-requests
   const requests = ['Kampagner','Annoncer','Keywords'].map(name => ({
     repeatCell: {
       range: {
@@ -77,7 +77,7 @@ export async function createUserSheet(
     requestBody: { requests }
   });
 
-  // 7) Returnér det nyskabte spreadsheetId til klienten
+ 
   return spreadsheetId;
 }
 

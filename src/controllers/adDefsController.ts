@@ -60,7 +60,7 @@ export const updateAd: RequestHandler = async (req, res) => {
   }
 
   try {
-    // 1) Opdater i MongoDB kun hvis tenantId + userId + sheetId + adId matcher
+    //Opdater i MongoDB 
     const doc = await AdDefModel.findOneAndUpdate(
       { _id: adId, tenantId, userId: user._id, sheetId },
       updates,
@@ -71,7 +71,7 @@ export const updateAd: RequestHandler = async (req, res) => {
       return
     }
 
-    // 2) Opdater i Google Sheet
+    // Opdater i Google Sheet
     try {
       const oauth = createOAuthClient()
       oauth.setCredentials({ refresh_token: user.refreshToken })
@@ -121,7 +121,7 @@ export const deleteAd: RequestHandler = async (req, res) => {
       return
     }
 
-    // 2) Slet rækken i Google Sheet
+    // Slet rækken i Google Sheet
     try {
       const oauth = createOAuthClient()
       oauth.setCredentials({ refresh_token: user.refreshToken })
@@ -164,7 +164,7 @@ export const syncAds: RequestHandler = async (req, res) => {
   }
 
   try {
-    // 1) Opret OAuth2‐client og sæt token
+    // Opret OAuth2‐client og sæt token
     const oauth = createOAuthClient()
     oauth.setCredentials({ refresh_token: user.refreshToken })
 
@@ -177,7 +177,7 @@ export const syncAds: RequestHandler = async (req, res) => {
     )
 
     
-    // 3) Returnér antal synkroniserede annoncer
+    // 
     res.json({ synced: parsed.length })
   } catch (err: any) {
     res.status(500).json({ error: err.message })

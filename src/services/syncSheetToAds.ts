@@ -27,7 +27,7 @@ export async function syncSheetToAds(
   oauth: OAuth2Client,
   spreadsheetId: string,
   userId: string,
-  tenantId: string      // <<— ekstra parameter
+  tenantId: string      
 ): Promise<string[]> {
   const sheets = google.sheets({ version: 'v4', auth: oauth })
   const res = await sheets.spreadsheets.values.get({
@@ -70,7 +70,7 @@ export async function syncSheetToAds(
 
     try {
       if (resourceType === 'campaign') {
-        // Upsert kampagne i MongoDB med tenantId
+       
         await CampaignDefModel.findOneAndUpdate(
           { tenantId, sheetId: spreadsheetId, campaignId: id },
           {
@@ -87,7 +87,7 @@ export async function syncSheetToAds(
         )
         campaignOps.push({ id, name, budget, status, startDate, endDate, action })
       } else if (resourceType === 'adGroup') {
-        // Gem op til senere batch‐mutation
+       
         adGroupOps.push({ id, parentId, name, status, action })
       } else if (resourceType === 'ad') {
         adOps.push({ parentId, headline1, headline2, description, finalUrl, action })
@@ -133,7 +133,7 @@ export async function syncAllFromSheet(
   oauth: OAuth2Client,
   sheetId: string,
   userId: string,
-  tenantId: string    // <<— ekstra parameter
+  tenantId: string    
 ): Promise<{ campaigns: number; ads: number; keywords: number }> {
   
   const campNames = await syncCampaignDefsFromSheet(oauth, sheetId, userId, tenantId)

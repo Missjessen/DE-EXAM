@@ -45,7 +45,7 @@ export async function parseCampaignsFromSheet(
 
       return {
         name,
-        status,       // <--- her skal den være korrekt unions‐type
+        status,       
         budget,
         startDate,
         endDate,
@@ -57,11 +57,11 @@ export async function parseCampaignsFromSheet(
 /**
  * Synkroniser kampagne‐definitioner fra Google Sheets til MongoDB.
  *
- * @param oauth    OAuth2Client med gyldig credentials
- * @param sheetId  ID for Google Sheet
- * @param userId   ID for den loggede bruger (string)
- * @param tenantId Tenant‐ID hentet fra JWT (string)
- * @returns        Listen af ParsedCampaigns (samme som parseCampaignsFromSheet)
+ * @param oauth    
+ * @param sheetId 
+ * @param userId   
+ * @param tenantId 
+ * @returns        
  */
 export async function syncCampaignDefsFromSheet(
   oauth: OAuth2Client,
@@ -69,10 +69,10 @@ export async function syncCampaignDefsFromSheet(
   userId: string,
   tenantId: string
 ): Promise<ParsedCampaign[]> {
-  // 1) Hent alle rækker fra arket
+  
   const parsed = await parseCampaignsFromSheet(oauth, sheetId)
 
-  // 2) Slet alle eksisterende kampagne‐definitioner i DB for netop denne tenant + user + sheet
+  
   await CampaignDefModel.deleteMany({
     tenantId,                        // nu med i filter
     userId: new Types.ObjectId(userId),
@@ -95,10 +95,10 @@ export async function syncCampaignDefsFromSheet(
     createdAt: new Date()
   } as Omit<ICampaignDef, '_id'>))
 
-  // 4) Indsæt dem i databasen som en batch‐operation
+  
   await CampaignDefModel.insertMany(toInsert)
 
-  // 5) Returnér den parsede liste (kan evt. bruges til at validere, vise notifikation osv.)
+  
   return parsed
 }
 
@@ -140,8 +140,8 @@ export async function updateCampaignRowInSheet(
 
 /**
  * Sletter en enkelt række i Google Sheets.
- * @param oAuthClient OAuth2Client til autentificering
- * @param sheetId     ID for Google Sheet
+ * @param oAuthClient 
+ * @param sheetId     
  * @param rowIndex    Indeks for rækken, der skal slettes (1‐baseret)
  */
 export async function deleteCampaignRowInSheet(

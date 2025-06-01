@@ -31,12 +31,12 @@ export const syncDbController = async (
   oauth.setCredentials({ refresh_token: req.user.refreshToken })
 
   try {
-    // 2) Kald service‐lag – inkluderer nu fire argumenter
+    // Kald service‐lag – inkluderer nu fire argumenter
     const result = await syncAllFromSheet(
       oauth,
       sheetId,
       req.user._id.toString(),
-      tenantId      // <<— ekstra parameter
+      tenantId     
     )
 
     res.status(200).json(result)
@@ -55,7 +55,7 @@ export const syncAdsController = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  // 1) Tjek authentication + tenantId
+  // Tjek authentication + tenantId
   if (!req.user?.refreshToken) {
     res.status(401).json({ error: 'Login kræves' })
     return
@@ -71,12 +71,12 @@ export const syncAdsController = async (
   oauth.setCredentials({ refresh_token: req.user.refreshToken })
 
   try {
-    // 2) Kald service‐lag – inkluderer nu fire argumenter
+   
     const statuses = await syncSheetToAds(
       oauth,
       sheetId,
       req.user._id.toString(),
-      tenantId      // <<— ekstra parameter
+      tenantId      
     )
 
     res.status(200).json({ statuses })
@@ -95,7 +95,7 @@ export const syncAllAndAdsController = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  // 1) Tjek authentication + tenantId
+ 
   if (!req.user?.refreshToken) {
     res.status(401).json({ error: 'Login kræves' })
     return
@@ -111,12 +111,12 @@ export const syncAllAndAdsController = async (
   oauth.setCredentials({ refresh_token: req.user.refreshToken })
 
   try {
-    // 2) Sync DB‐delen – nu med fire argumenter
+  
     const dbResult = await syncAllFromSheet(
       oauth,
       sheetId,
       req.user._id.toString(),
-      tenantId      // <<— ekstra parameter
+      tenantId     
     )
 
     // 3) Sync Ads‐delen – nu med fire argumenter
@@ -124,7 +124,7 @@ export const syncAllAndAdsController = async (
       oauth,
       sheetId,
       req.user._id.toString(),
-      tenantId      // <<— ekstra parameter
+      tenantId      
     )
 
     res.status(200).json({

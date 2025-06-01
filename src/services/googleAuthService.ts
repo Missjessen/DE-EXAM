@@ -66,12 +66,12 @@ export async function verifyGoogleCode(
     expiry_date?: number;
   };
 }> {
-  // 1) Byt code til tokens
+ 
   const client = createOAuthClient();
   const { tokens } = await client.getToken(code);
   client.setCredentials(tokens);
 
-  // 2) Hent profildata
+ 
   const oauth2 = google.oauth2({ version: 'v2', auth: client });
   const { data } = await oauth2.userinfo.get();
   const googleId = data.id!;
@@ -79,7 +79,7 @@ export async function verifyGoogleCode(
   const name     = data.name!;
   const picture  = data.picture!;
 
-  // 3) Upsert i Mongo med tenantId
+  
   let doc = await iUserModel.findOne({ googleId, tenantId });
   if (!doc) {
     doc = new iUserModel({
@@ -100,7 +100,7 @@ export async function verifyGoogleCode(
   }
   await doc.save();
 
-  // 4) Saniter tokens fra Google – null → undefined
+
   const safeTokens: {
     access_token?: string;
     refresh_token?: string;

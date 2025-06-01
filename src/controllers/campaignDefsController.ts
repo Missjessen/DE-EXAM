@@ -118,7 +118,7 @@ export const deleteCampaign: RequestHandler = async (req, res) => {
     return
   }
 
-  // 1) Find dokumentet (for at hente rowIndex) og slet i Mongo med tenantId+userId+_id
+  //Find dokumentet (for at hente rowIndex) 
   let rowIndex: number
   try {
     const doc = await CampaignDefModel.findOne({
@@ -143,7 +143,7 @@ export const deleteCampaign: RequestHandler = async (req, res) => {
     return
   }
 
-  // 2) Slet rækken i Google Sheet
+  // Slet rækken i Google Sheet
   try {
     const oauth = createOAuthClient()
     oauth.setCredentials({ refresh_token: user.refreshToken })
@@ -174,7 +174,7 @@ export const syncCampaignDefs: RequestHandler = async (req, res) => {
     return
   }
 
-  // 1) Opret OAuth2‐client med brugerens refreshToken
+  // Opret OAuth2‐client med brugerens refreshToken
   const oauth = createOAuthClient()
   oauth.setCredentials({ refresh_token: user.refreshToken })
   
@@ -185,7 +185,7 @@ export const syncCampaignDefs: RequestHandler = async (req, res) => {
       oauth,
       sheetId,
       user._id.toString(),
-      tenantId   // <<— tilføjet her
+      tenantId   
     )
     res.json({ synced: parsed.length, data: parsed })
   } catch (err: any) {

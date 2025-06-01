@@ -41,13 +41,12 @@ export const createSheet: RequestHandler = async (
       return
     }
 
-    // Opret tilegnelsen i Google (Sheets API)
+   
     const oauth = createOAuthClient()
     oauth.setCredentials({ refresh_token: user.refreshToken! })
     const sheetId  = await createUserSheet(oauth, name)
     const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`
 
-    // Gem i MongoDB – med tenantId + userId
     const sheet = await SheetModel.create({
       tenantId,
       userId:    new Types.ObjectId(user._id),
@@ -167,7 +166,7 @@ export const updateSheetById: RequestHandler = async (
       return
     }
 
-    // Optional: rename på Google Drive (Sheets API) …
+    
     try {
       const oauth2 = createOAuthClient()
       oauth2.setCredentials({ refresh_token: user.refreshToken! })

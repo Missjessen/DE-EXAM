@@ -65,7 +65,7 @@ export const updateKeyword: RequestHandler = async (req, res) => {
   }
 
   try {
-    // 1) Find og opdater kun dokumentet, hvis tenantId + userId + sheetId + _id matcher
+   
     const doc = await KeywordDefModel.findOneAndUpdate(
       { tenantId, userId: user._id, sheetId, _id: keywordId },
       updates,
@@ -77,7 +77,7 @@ export const updateKeyword: RequestHandler = async (req, res) => {
       return
     }
 
-    // 2) Opdater i Google Sheet (rækkeret)
+    // Opdater i Google Sheet (rækkeret)
     try {
       const oauth = createOAuthClient()
       oauth.setCredentials({ refresh_token: user.refreshToken })
@@ -91,7 +91,7 @@ export const updateKeyword: RequestHandler = async (req, res) => {
       console.warn('Kunne ikke opdatere Keyword-række i Sheet:', e.message)
     }
 
-    // 3) Returnér opdateret dokument
+    // Returnér opdateret dokument
     res.json(doc)
     return
   } catch (err: any) {
@@ -121,7 +121,7 @@ export const deleteKeyword: RequestHandler = async (req, res) => {
   }
 
   try {
-    // 1) Hent dokumentet inkl. rowIndex (med tenantId‐filter)
+    //Hent dokumentet inkl. rowIndex (med tenantId‐filter)
     const doc = await KeywordDefModel
       .findOne({ tenantId, sheetId, userId: user._id, _id: keywordId })
       .lean()
@@ -131,14 +131,14 @@ export const deleteKeyword: RequestHandler = async (req, res) => {
       return
     }
 
-    // 2) Ekstra tjek af rowIndex
+   
     const rowIndex = doc.rowIndex
     if (typeof rowIndex !== 'number') {
       res.status(500).json({ error: 'Ingen rowIndex i DB-dokument' })
       return
     }
 
-    // 3) Slet rækken i Google Sheet
+  
     try {
       const oauth = createOAuthClient()
       oauth.setCredentials({ refresh_token: user.refreshToken })
@@ -147,7 +147,7 @@ export const deleteKeyword: RequestHandler = async (req, res) => {
       console.warn('Kunne ikke slette Keyword-række i Sheet:', err.message)
     }
 
-    // 4) Slet dokumentet i DB (med tenantId‐filter igen)
+   
     await KeywordDefModel.deleteOne({
       tenantId,
       sheetId,
@@ -188,14 +188,14 @@ export const syncKeywords: RequestHandler = async (req, res) => {
   oauth.setCredentials({ refresh_token: user.refreshToken })
 
   try {
-    // Kald service med tenantId som fjerde argument
+   
     const parsed = await syncKeywordDefsFromSheet(
       oauth,
       sheetId,
       user._id.toString(),
-      tenantId   // <<— ekstra parameter
+      tenantId  
     )
-    // Returnér status + antal synkroniserede
+    
     res.json({ status: 'OK', updated: parsed.length })
     return
   } catch (err: any) {
